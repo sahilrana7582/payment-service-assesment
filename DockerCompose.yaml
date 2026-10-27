@@ -1,4 +1,25 @@
 services:
+  app:
+    container_name: payment-svc
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      NAME: "payment-svc"
+      PORT: "8888"
+      HOST: "database"
+      DB_PORT: "5432"
+      USER: "postgres"
+      PASSWORD: "password_dev"
+      DB_NAME: "payments"
+      SSL_MODE: "disable"
+    ports:
+      - "8888:8888"
+    depends_on:
+      database:
+        condition: service_healthy
+
   database:
     container_name: payment-db
     image: postgres:17
