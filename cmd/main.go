@@ -33,8 +33,9 @@ func main() {
 
 	log.Println("Database connected and migrations completed successfully")
 
-	userRepo := repository.NewRepository(pool)
-	userService := service.NewUserService(userRepo)
+	repo := repository.NewRepository(pool)
+
+	userService := service.NewUserService(repo)
 	userHandler := handler.NewUserHandler(userService)
 
 	r := routes.NewRouter(userHandler)

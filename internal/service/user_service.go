@@ -14,7 +14,7 @@ var (
 )
 
 type UserRepository interface {
-	CreateUser(ctx context.Context, username, password, email string) (string, error)
+	CreateUserWithWallet(ctx context.Context, username, password, email string) (string, error)
 }
 
 type UserService struct {
@@ -29,7 +29,7 @@ func (s *UserService) CreateUser(ctx context.Context, username, password, email 
 
 	email = strings.ToLower(email)
 
-	userID, err := s.repo.CreateUser(ctx, username, password, email)
+	userID, err := s.repo.CreateUserWithWallet(ctx, username, password, email)
 	if err != nil {
 		if errors.Is(err, repository.ErrDuplicateEmail) {
 			return "", ErrEmailTaken

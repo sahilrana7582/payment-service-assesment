@@ -7,22 +7,13 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5/pgconn"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 const uniqueViolationCode = "23505"
 
 var ErrDuplicateEmail = errors.New("email already exists")
 
-type UserRepository struct {
-	Db *pgxpool.Pool
-}
-
-func NewRepository(db *pgxpool.Pool) *UserRepository {
-	return &UserRepository{Db: db}
-}
-
-func (repo *UserRepository) CreateUser(ctx context.Context, username, password, email string) (string, error) {
+func (repo *Repository) CreateUser(ctx context.Context, username, password, email string) (string, error) {
 	query := `
 		INSERT INTO users (username, password, email)
 		VALUES ($1, $2, $3)
@@ -39,6 +30,25 @@ func (repo *UserRepository) CreateUser(ctx context.Context, username, password, 
 			return "", ErrDuplicateEmail
 		}
 		return "", fmt.Errorf("failed to create user: %w", err)
+	}
+
+	return userID, nil
+}
+
+func (repo *Repository) CreateUserWithWallet(ctx context.Context, username, password, email string) (string, error) {
+	var userID string
+
+	err := repo.WithTx(ctx, func(txRepo *Repository) error {
+		var err error
+		userID, err = txRepo.CreateUser(ctx, username, password, email)
+		if err != nil {
+			return err
+		}
+
+		return txRepo.CreateWallet(ctx, userID)
+	})
+	if err != nil {
+		return "", err
 	}
 
 	return userID, nil
